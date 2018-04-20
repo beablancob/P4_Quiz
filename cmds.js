@@ -268,12 +268,12 @@ exports.playCmd = (socket, rl) => {
  * @param rl Objeto readline usado para implementar el CLI.
  * @param id Clave del quiz a eliminar.
  */
-exports.deleteCmd = (rl, id) => {
+exports.deleteCmd = (socket, rl, id) => {
     validateId(id)
     .then(id => {
-        if(id< quiz.length)
-        models.quiz.destroy({where: {id}})
-
+        if(id< quiz.length) {
+            models.quiz.destroy({where: {id}})
+        }
     }) //accedo a la base de datos models, a la tabla quiz y elimino el elemento que corresponda con el id
     .catch(error => {
         errorlog(socket, error.message);
@@ -295,7 +295,7 @@ exports.deleteCmd = (rl, id) => {
  * @param rl Objeto readline usado para implementar el CLI.
  * @param id Clave del quiz a editar
  */
-exports.editCmd = (rl, id) =>{
+exports.editCmd = (socket, rl, id) =>{
 
     validateId(id)
         .then(id => models.quiz.findById(id))
@@ -338,7 +338,7 @@ exports.editCmd = (rl, id) =>{
  * @param rl Objeto readline usado para implementar el CLI.
  *
  */
-exports.creditsCmd = rl => {
+exports.creditsCmd = (socket, rl) => {
     log(socket, "Autor de la práctica:");
     log(socket, "Beatriz Blanco Béjar");
     rl.prompt();
@@ -349,7 +349,7 @@ exports.creditsCmd = rl => {
  * @param rl Objeto readline usado para implementar el CLI
  */
 
-exports.quitCmd = rl => {
+exports.quitCmd = (socket, rl) => {
     rl.close();
     socket.end();
 
