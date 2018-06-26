@@ -5,7 +5,8 @@
  * los clientes se conectaran a esta app servidor utilizando un programa tipo telnet, telcup,
  * Varios clientes se podran conectar simultaneamente y jugar con las preguntas que están almacenadas en la
  * base de datos.
- * El comando quit es lo unico q cambia, que desconectará al cliente conectado
+ * El comando quit es lo unico q cambia, que desconectará al cliente conectado que lo solicite
+ * Utilizamos el modulo net de node
  *
  */
 
@@ -25,17 +26,17 @@ const net = require("net");
  */
 //Creación del socket servidor. Toma como parametro el socket que nos conecta con el cliente
 net.createServer(socket => {
+
     console.log("Se ha conectado un cliente desde " + socket.remoteAddress);
 
-
-//Mensaje inicial
+    //Mensaje inicial
     biglog(socket, 'CORE Quiz', 'green');
 
     const rl = readline.createInterface({
-        //input: process.stdin, //proceso estandar de entrada
+
         input: socket,
         output: socket,
-        //output: process.stdout, //poceso estandar de salida
+
         prompt: colorize('quiz > ', "blue") ,//esto es para que el usuario sepa que está a la espera de un comando suyo
         completer: (line) => {
             const completions = 'h help add delete edit list test p play credits q quit'.split(' ');
@@ -50,7 +51,8 @@ net.createServer(socket => {
     });
     //Atender los eventos de los sockets, si se termina o hay error cierro el readline
     socket
-        .on("end", () => {rl.close()})
+        .on("end", () => {rl.close()}) //despues de la coma, eso es una funcion que lo que hace es cerrar el readline
+
         .on("error", () => {rl.close()});
 
 
@@ -115,6 +117,7 @@ net.createServer(socket => {
                     break;
 
                 default:
+
                     log(socket, `Comando desconocido: '${colorize(cmd, 'red')}'`);
                     log(socket, `Use ${colorize('help', 'green')}  para ver todos los comandos disponibles.`);
                     rl.prompt();

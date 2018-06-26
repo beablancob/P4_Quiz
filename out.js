@@ -8,6 +8,9 @@ const chalk = require('chalk');
  * @param msg El string que hay que dar color
  * @param color el color con el que pintar msg
  * @return {string} Devuelve el string msg con el color indicado
+ * Antes escribian por la consola, que es el servidor. Ahora lo que queremos
+ * es que escriban los mensajes en cada cliente (socket) => Escribimos el parametro
+ * socket en los metodos y se ponen en las llamadas a las funciones como primer parametro
  */
 
 const colorize = (msg, color) => {
@@ -25,9 +28,9 @@ const colorize = (msg, color) => {
  * @param msg El string a escribir
  * @param color Color del texto
  */
-const log = (socket, msg, color) => { //si no me pasan un color, se pone el color por defecto
+const log = (socket,msg, color) => { //si no me pasan un color, se pone el color por defecto
 
-    socket.write(colorize(msg, color) + "\n");
+    socket.write(colorize(msg,color) + "\n");
 };
 
 /**

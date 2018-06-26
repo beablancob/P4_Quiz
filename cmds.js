@@ -2,8 +2,7 @@
 const Sequelize = require('sequelize');
 const {models} = require('./model');
 const {colorize, log, biglog, errorlog} = require("./out");
-
-
+const readline = require('readline');
 
 /**
  * Muestra la ayuda
@@ -208,57 +207,57 @@ exports.playCmd = (socket, rl) => {
 
     let score = 0;
     //Array que guarda las preguntas todavia sin responder
-    let toBeResolved;
+    let toBeResolved = [];
 
     //Si el array esta vacio, mensaje que no hay nada que preguntar
     //Los resultados
     models.quiz.findAll()
-        .then(quizzes => {
-            toBeResolved = quizzes;
+        .each(quiz => {
+            toBeResolved.push(quiz);
+        })
+        .then(() =>{
+            jugar()
+        })
             const jugar = () => {
-                if (toBeResolved.length === 0) {
+                if (toBeResolved.length <= 0) {
                     log('Eres el mejor! Has ganado la partida, acertando ' + score + ' preguntas.');
                     score = 0;
                     biglog('WIN', 'green');
                     log('FIN!');
-                    rl.prompt();
+                    return;
                 } else {
                     let id = Math.floor(Math.random() * (toBeResolved.length));
-                    log(`${toBeResolved.length}`);
+                  // log(`${toBeResolved.length}`);
 
                     let quizzz = toBeResolved[id];
+                    return makeQuestion(rl, `${quizzz.question} ? `)
+                        .then(answer => {
+                            log(socket, ' Su respuesta es: ');
+                            var ans = answer.toLowerCase().trim();
 
-                    rl.question(colorize(`¿${quizzz.question}?  `, 'red'), answer => {
-                        log(socket, ' Su respuesta es: ');
-                        var ans = answer.toLowerCase().trim();
+                            if (ans === quizzz.answer.toLowerCase()) {
+                                score++;
+                                log(socket, 'Correcto. Eres un genio! Llevas ' + score + ' respuestas correctas.');
+                                toBeResolved.splice(id, 1);
+                                jugar();
 
-                        if (ans === quizzz.answer.toLowerCase()) {
-                            score++;
-
-                            log('Correcto. Eres un genio! Llevas ' + score + ' respuestas correctas.');
-                            toBeResolved.splice(id, 1);
-
+                            } else {
+                                log(socket, 'Incorrecto.');
+                                log(socket, 'Fin del examen. Otra vez será... Has contestado ' + score + ' preguntas correctamente.', 'red');
+                                biglog(socket, score, 'magenta');
+                                score = 0;
+                            }
+                        })
+                        .catch(error=> {
+                            errorlog(socket, error.message);
                             rl.prompt();
-                            jugar();
-                        } else {
-                            log(socket, 'Incorrecto.');
-                            log(socket, 'Fin del examen. Otra vez será... Has contestado ' + score + ' preguntas correctamente.', 'red');
-                            biglog(socket, score, 'magenta');
-                            score = 0;
-
+                        })
+                        .then(() => {
                             rl.prompt();
-                        }
-                    });
+                        });
                 }
 
             }
-            jugar();
-        })
-        .catch(error=> {
-            errorlog(socket, error.message);
-            rl.prompt();
-        });
-
 };
 
 
@@ -270,11 +269,8 @@ exports.playCmd = (socket, rl) => {
  */
 exports.deleteCmd = (socket, rl, id) => {
     validateId(id)
-    .then(id => {
-        if(id< quiz.length) {
-            models.quiz.destroy({where: {id}})
-        }
-    }) //accedo a la base de datos models, a la tabla quiz y elimino el elemento que corresponda con el id
+        .then(id => models.quiz.destroy({where: {id}}))
+        //accedo a la base de datos models, a la tabla quiz y elimino el elemento que corresponda con el id
     .catch(error => {
         errorlog(socket, error.message);
     })
@@ -319,11 +315,11 @@ exports.editCmd = (socket, rl, id) =>{
             return quiz.save();
         })
         .then(quiz => {
-            log(socket, `Se ha cambiado el quiz ${colorize(quiz.id, 'magenta')} por: ${quiz.question} ${colorize('=>', 'magenta')} ${quiz.answer}`)
+            log(socket, `Se ha cambiado el quiz ${colortext(id, 'magenta')} por: ${quiz.question} ${colorize('=>', 'magenta')} ${quiz.answer}`)
         })
         .catch(Sequelize.ValidationError, error => {
             errorlog(socket, 'El quiz es erróneo: ');
-            error.errors.forEach(({message}) => errorlog(message));
+            error.errors.forEach(({message}) => errorlog(socket, message));
         })
         .catch(error => {
             errorlog(socket, error.message);
