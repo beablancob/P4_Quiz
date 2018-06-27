@@ -141,7 +141,7 @@ exports.showCmd = (socket, rl, id) => {
     .then(id => models.quiz.findById(id)) //busco el quiz en los modelos con su id
     .then(quiz => { //paso por parámetro el quiz
         if(!quiz) { //si no ha pasado ninguno porque no hay quiz con ese id, error
-            throw new Error(`No existe un quiz asociado al id=${id}.`)
+            throw new Error (`No existe un quiz asociado al id = ${id}.`);
         }
         log(socket, `[${colorize(quiz.id, 'magenta')}]: ${quiz.question} ${colorize('=>', 'magenta')} ${quiz.answer}`);
     })
@@ -162,11 +162,11 @@ exports.showCmd = (socket, rl, id) => {
  */
 exports.testCmd = (socket, rl, id) => {
 
-    validateId(id)
-        .then(id => models.quiz.findById(id))
-        .then(quiz => {
-            if (!quiz) {
-                throw new Error(`No existe un quiz asociado al id=${id}`);
+    validateId(id) //devuelve una promesa, si hay error se va al catch de abajo, sino sigo
+        .then(id => models.quiz.findById(id)) //busco el quiz en los modelos con su id
+        .then(quiz => { //paso por parámetro el quiz
+            if (!quiz) { //si no ha pasado ninguno porque no hay quiz con ese id, error
+                throw new Error (`No existe un quiz asociado al id = ${id}.`);
             }
             makeQuestion(rl, '¿' + quiz.question + '? ')
                 .then(a => {
@@ -181,6 +181,7 @@ exports.testCmd = (socket, rl, id) => {
                         log(socket, 'Otra vez será...', 'red');
                     }
                 })
+        })
                 .catch(error => {
                     errorlog(socket, error.message);
                 })
@@ -190,7 +191,7 @@ exports.testCmd = (socket, rl, id) => {
                     rl.prompt();
 
                 });
-        });
+
 
 };
 
@@ -220,10 +221,10 @@ exports.playCmd = (socket, rl) => {
         })
             const jugar = () => {
                 if (toBeResolved.length <= 0) {
-                    log('Eres el mejor! Has ganado la partida, acertando ' + score + ' preguntas.');
+                    log(socket, 'Eres el mejor! Has ganado la partida, acertando ' + score + ' preguntas.');
                     score = 0;
-                    biglog('WIN', 'green');
-                    log('FIN!');
+                    biglog(socket, 'WIN', 'green');
+                    log(socket, 'FIN!');
                     return;
                 } else {
                     let id = Math.floor(Math.random() * (toBeResolved.length));
@@ -299,10 +300,10 @@ exports.editCmd = (socket, rl, id) =>{
             if (!quiz) {
                 throw new Error(`No existe un quiz asociado al id=${id}.`);
             }
-            process.stdout.isTTY && setTimeout(() => {rl.write(quiz.question)}, 0);
+            process.stdout.isTTY && setTimeout(() => { rl.write(quiz.question)}, 0);
             return makeQuestion(rl,  ' Introduzca la pregunta: ')
                 .then(q => {
-                    process.stdout.isTTY && setTimeout(() => {rl.write(quiz.answer)}, 0);
+                    process.stdout.isTTY && setTimeout(() => { rl.write(quiz.answer)}, 0);
                     return makeQuestion(rl, 'Introduzca la respuesta: ')
                     then(a => {
                         quiz.question = q;
